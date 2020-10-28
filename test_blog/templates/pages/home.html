@@ -1,5 +1,14 @@
 {% extends "base.html" %}
 
+{% load i18n %}
+
+{% block content %}
+
+<h1>{% trans 'Home page' %}</h1>
+
+<p>{% trans 'Please, login to see your feed' %}</p>
+{% endblock content %}
+
 {% block extrajs %}
 <script async type="text/javascript">
   var activeNav = document.getElementById("home");
