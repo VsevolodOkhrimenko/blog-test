@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+
+{% block content %}
+<h2>{% trans 'Blog' %}</h2>
+<a class="btn btn-primary" href="{% url 'create_post' %}" role="button">{% trans 'Create Post' %}</a>
+<a class="btn btn-primary {% if not type_feed %}disabled{% endif %}" href="{% url 'blog' %}"  role="button">{% trans 'All posts' %}</a>
+<a class="btn btn-primary {% if type_feed == 'personal' %}disabled{% endif %}" href="{% url 'blog' type_feed='personal' %}"  role="button">{% trans 'Personal feed' %}</a>
+<a class="btn btn-primary {% if type_feed == 'my' %}disabled{% endif %}" href="{% url 'blog' type_feed='my' %}" role="button">{% trans 'My feed' %}</a>
+<div id="postList">
+  {% for post in page_obj %}
+    <div class="card post {% if request.user in post.seen.all %}seen{% endif %}">
+      <div class="card-body">
+        <h5 class="card-title">{{post.header}}</h5>
+        <p class="card-text">{{post.text|slice:"0:128"}}{% if post.text|length|get_digit:"-1" > 128 %}...{% endif %}</p>
+        <p>{% trans 'Created' %}: {{post.created|date:'d-m-Y H:i'}}</p>
+        <a href="{% url 'post' pk=post.id %}">{% trans 'Read more' %}</a>
+        <form action="" method="post">
+          {% csrf_token %}
+          {% if request.user in post.user.blog.subscriptions.all %}
+            <input type="hidden" name="blog" value="{{post.user.blog.id}}">
+            <input type="hidden" name="action" value="unsubscribe">
+            <button type="submit">{% trans 'Unsubscribe' %}</button>
+          {% else %}
+            <input type="hidden" name="blog" value="{{post.user.blog.id}}">
+            <input type="hidden" name="action" value="subscribe">
+            <button type="submit">{% trans 'Subscribe' %}</button>
+          {% endif %}
+        </form>
+        <form action="" method="post">
+          {% csrf_token %}
+          {% if request.user in post.seen.all %}
+            <input type="hidden" name="post" value="{{post.id}}">
+            <input type="hidden" name="action" value="notseen">
+            <button type="submit">{% trans 'Mark as not seen' %}</button>
+          {% else %}
+            <input type="hidden" name="post" value="{{post.id}}">
+            <input type="hidden" name="action" value="seen">
+            <button type="submit">{% trans 'Mark as seen' %}</button>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+  {% endfor %}
+
+  <div class="pagination">
+    <span class="step-links">
+      {% if page_obj.has_previous %}
+        <a href="?page=1">&laquo; first</a>
+        <a href="?page={{ page_obj.previous_page_number }}">{% trans 'previous' %}</a>
+      {% endif %}
+      <span class="current">
+        {% trans 'Page' %} {{ page_obj.number }}.
+      </span>
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">{% trans 'next' %}</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}">{% trans 'last' %} &raquo;</a>
+      {% endif %}
+  </span>
+  </div>
+  
+</div>
+{% endblock content %}
+
+{% block extrajs %}
+<script async type="text/javascript">
+  var activeNav = document.getElementById("blog");
+  activeNav.classList.add("active");
+</script>
+{% endblock extrajs %}
