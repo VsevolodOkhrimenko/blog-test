@@ -1,11 +1,12 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.auth.decorators import login_required
 from django.urls import include, path
 from django.conf.urls import url
 from django.views import defaults as default_views
-from test_blog.blog.views import (get_blog_view, get_home_view,
-                                  create_post_view, get_post_view)
+from test_blog.blog.views import (BlogView, get_home_view,
+                                  CreatePostView, get_post_view)
 from test_blog.users.views import login_view, logout_view
 
 urlpatterns = [
@@ -13,9 +14,12 @@ urlpatterns = [
     # Django Admin, use {% url 'admin:index' %}
     path("login", login_view, name="login"),
     path("logout", logout_view, name="logout"),
-    path("blog", get_blog_view, name="blog"),
-    url(r'^blog/(?P<type_feed>[^/.]+)/$', get_blog_view, name='blog'),
-    path("blog/create-post", create_post_view, name="create_post"),
+    path("blog", login_required(BlogView.as_view()), name="blog"),
+    url(r'^blog/(?P<type_feed>[^/.]+)/$',
+        login_required(BlogView.as_view()), name='blog'),
+    path(
+        "blog/create-post",
+        login_required(CreatePostView.as_view()), name="create_post"),
     url(r'^post/(?P<pk>[^/.]+)/$', get_post_view, name='post'),
     path(settings.ADMIN_URL, admin.site.urls),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
